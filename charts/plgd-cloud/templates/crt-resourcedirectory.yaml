@@ -1,0 +1,26 @@
+{{- if ( not .Values.resourcedirectory.tls.listen.secret.name) and ( .Values.global.security.certManager.enable ) -}}
+{{- $dnsName := include "plgd-cloud.resourcedirectory.dns" . }}
+{{- $certName := include "plgd-cloud.resourcedirectory.listenCrtName" . }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $certName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "plgd-cloud.resourcedirectory.labels" . | nindent 4 }}
+spec:
+  secretName: {{ $certName }}
+  dnsNames:
+    - {{ $dnsName }}
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  usages:
+    - server auth
+  duration: {{ .Values.global.security.certManager.duration }}
+  renewBefore: {{ .Values.global.security.certManager.renewBefore }}
+  issuerRef:
+    name: {{ .Values.global.security.certManager.issuer }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}

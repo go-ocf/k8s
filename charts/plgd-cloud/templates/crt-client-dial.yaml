@@ -1,0 +1,25 @@
+{{- if ( not .Values.global.security.certManager.tls.dial.secret.name) and ( .Values.global.security.certManager.enable ) -}}
+{{- $certName := include "plgd-cloud.dialCrtName" . }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $certName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "plgd-cloud.resourcedirectory.labels" . | nindent 4 }}
+spec:
+  secretName: {{ $certName }}
+  dnsNames:
+    - internal.ocf.client
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  usages:
+    - client auth
+  duration: {{ .Values.global.security.certManager.duration }}
+  renewBefore: {{ .Values.global.security.certManager.renewBefore }}
+  issuerRef:
+    name: {{ .Values.global.security.certManager.issuer }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}

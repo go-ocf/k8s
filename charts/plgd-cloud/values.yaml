@@ -1,0 +1,165 @@
+
+nameOverride: ""
+fullnameOverride: ""
+
+global:
+  repository: plgd
+  clusterDomain: cluster.local
+  security:
+    certManager:
+      enable: true
+      issuer: intermediate-ca
+      duration: 8760h # 365d
+      renewBefore: 360h # 15d
+
+      tls:
+        listen:
+          mounthPath: /etc/certs/listen
+          cert: tls.crt
+          key: tls.key
+        dial:
+          mounthPath: /etc/certs/dial
+          cert: tls.crt
+          key: tls.key
+          secret:
+            name:
+        ca:
+          mounthPath: /etc/certs/ca-authority
+          secret:
+            name: ca-chain
+          cert: ca.crt
+
+setup:
+  jwtUrl:
+  auth:
+    clientId:
+    clientSecret:
+    scopes:
+    endpointTokenUrl:
+  wellKnown:
+    enabled: false
+    cloudCaPoolPath:
+    accessTokenUrl:
+    authCodeUrl:
+    cloudId:
+    cloudUrl:
+    signingServerAddress:
+    cloudAuthorizationProvider:
+  grpc:
+    godebug: http2debug=2
+    trace: all
+    verbosity: DEBUG
+    verbosityLevel: 99
+    severityLevel: info
+
+resourcedirectory:
+  enable: true
+  debug: true
+  debugGrpc: false
+  name: resource-directory
+  image: resource-directory
+  address:
+  tag:
+  grpcPort: 9100
+  replicaCount: 1
+  restartPolicy: Always
+  setup:
+    userMgmtTicketFrequency: 5s
+    userMgmtExpiration: 5s
+  tls:
+    listen:
+      secret:
+        name:
+
+resourceaggregate:
+  enable: true
+  debug: true
+  debugGrpc: false
+  name: resource-aggregate
+  image: resource-aggregate
+  address:
+  tag:
+  grpcPort: 9100
+  replicaCount: 1
+  restartPolicy: Always
+  setup:
+    snapshotThreshold: 16
+  tls:
+    listen:
+      secret:
+        name:
+
+
+
+coapgateway:
+  enable: true
+  debug: true
+  debugGrpc: false
+  name: coap-gateway
+  image: coap-gateway
+  tag:
+  coapsPort: 5684
+  replicaCount: 1
+  fqdn:
+  service:
+    type: LoadBalancer
+    externalIp:
+    annotations:
+  restartPolicy: Always
+  tls:
+    listen:
+      disableVerifyClientCrt: True
+      secret:
+        name:
+
+authorizationserver:
+  enable: true
+  debug: true
+  name: authorizationserver
+  image: authorizationserver
+  address:
+  tag:
+  grpcPort: 9100
+  replicaCount: 1
+  restartPolicy: Always
+  tls:
+    listen:
+      secret:
+        name:
+
+nats:
+  address: nats:4222
+
+mongodb:
+  address: mongodb:27017
+  connectionUriParam: "/?replicaSet=rs0"
+
+resources:
+  coapgateway: {}
+  resourceaggregate: {}
+  resourcedirectory: {}
+
+nodeSelector:
+  coapgateway: {}
+  resourceaggregate: {}
+  resourcedirectory: {}
+
+tolerations:
+  coapgateway: []
+  resourceaggregate: {}
+  resourcedirectory: {}
+
+affinity:
+  coapgateway: {}
+  resourceaggregate: {}
+  resourcedirectory: {}
+
+podSecurityContext:
+  coapgateway: {}
+  resourceaggregate: {}
+  resourcedirectory: {}
+
+securityContext:
+  coapgateway: {}
+  resourceaggregate: {}
+  resourcedirectory: {}

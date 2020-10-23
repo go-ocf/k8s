@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "plgd-cloud.clientAuthCfg" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "plgd-cloud.labels" . | nindent 4 }}
+type: Opaque
+data:
+  SERVICE_OAUTH_CLIENT_ID: {{ .Values.setup.auth.clientId | b64enc }}
+  SERVICE_OAUTH_CLIENT_SECRET:  {{ .Values.setup.auth.clientSecret | b64enc }}
+  SERVICE_OAUTH_SCOPES:  {{ .Values.setup.auth.scopes | b64enc }}
+  SERVICE_OAUTH_ENDPOINT_TOKEN_URL:  {{ .Values.setup.auth.endpointTokenUrl | b64enc }}

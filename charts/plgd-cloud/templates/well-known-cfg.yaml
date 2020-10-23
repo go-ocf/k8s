@@ -1,0 +1,18 @@
+{{- if .Values.setup.wellKnown.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "plgd-cloud.wellKnownCfg" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "plgd-cloud.labels" . | nindent 4 }}
+type: Opaque
+data:
+  SERVICE_CLIENT_CONFIGURATION_CLOUD_CA_POOL: {{ .Values.setup.wellKnown.cloudCaPoolPath | b64enc }}
+  SERVICE_CLIENT_CONFIGURATION_ACCESSTOKENURL: {{ .Values.setup.wellKnown.accessTokenUrl | b64enc }}
+  SERVICE_CLIENT_CONFIGURATION_AUTHCODEURL: {{ .Values.setup.wellKnown.authCodeUrl | b64enc }}
+  SERVICE_CLIENT_CONFIGURATION_CLOUDID: {{ .Values.setup.wellKnown.cloudId | b64enc }}
+  SERVICE_CLIENT_CONFIGURATION_CLOUDURL: {{ .Values.setup.wellKnown.cloudUrl | b64enc }}
+  SERVICE_CLIENT_CONFIGURATION_SIGNINGSERVERADDRESS: {{ .Values.setup.wellKnown.signingServerAddress | b64enc }}
+  SERVICE_CLIENT_CONFIGURATION_CLOUDAUTHORIZATIONPROVIDER: {{ .Values.setup.wellKnown.cloudAuthorizationProvider | b64enc }}
+{{- end }}
