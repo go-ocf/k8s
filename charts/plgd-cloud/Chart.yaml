@@ -8,10 +8,10 @@ version: 0.0.1
 
 appVersion: v1.0.1
 
-#dependencies:
-#  - name: mongodb-replicaset
-#    version: "3.15.0"
-#    repository: "https://kubernetes-charts.storage.googleapis.com/"
-#  - name: nats
-#    version: "0.3.10"
-#    repository: "https://nats-io.github.io/k8s/helm/charts/"
+dependencies:
+  - name: mongodb-replicaset
+    version: "3.15.0"
+    repository: "https://kubernetes-charts.storage.googleapis.com/"
+  - name: nats
+    version: "0.3.10"
+    repository: "https://nats-io.github.io/k8s/helm/charts/"
