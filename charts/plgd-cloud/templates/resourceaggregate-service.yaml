@@ -1,0 +1,17 @@
+{{- if .Values.resourceaggregate.enable -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "plgd-cloud.resourceaggregate.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "plgd-cloud.resourceaggregate.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: {{ .Values.resourceaggregate.grpcPort }}
+      targetPort: {{ .Values.resourceaggregate.grpcPort }}
+      protocol: TCP
+      name: grpc
+  selector:
+    {{- include "plgd-cloud.resourceaggregate.selectorLabels" . | nindent 4 }}
+{{- end -}}

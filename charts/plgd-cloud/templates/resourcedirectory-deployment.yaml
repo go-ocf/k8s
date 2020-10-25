@@ -1,0 +1,128 @@
+{{- if .Values.resourcedirectory.enable -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "plgd-cloud.resourcedirectory.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "plgd-cloud.resourcedirectory.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.resourcedirectory.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "plgd-cloud.resourcedirectory.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "plgd-cloud.resourcedirectory.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.podSecurityContext.resourcedirectory }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      restartPolicy: {{ .Values.resourcedirectory.restartPolicy }}
+      containers:
+        - name: {{ .Values.resourcedirectory.name }}
+          image: {{ template "plgd-cloud.resourcedirectory.image" . }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.resourcedirectory.grpcPort }}
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: {{ include "plgd-cloud.clientAuthCfg" . }}
+            {{- if .Values.setup.wellKnown.enabled }}
+            - secretRef:
+                name: {{ include "plgd-cloud.wellKnownCfg" . }}
+            {{- end }}
+          env:
+            - name: LOG_ENABLE_DEBUG
+              value: {{ .Values.resourcedirectory.debug | quote }}
+            - name: AUTH_SERVER_ADDRESS
+              value: {{ include "plgd-cloud.authorizationserver.address" . | quote }}
+            - name: RESOURCE_AGGREGATE_ADDRESS
+              value: {{ include "plgd-cloud.resourceaggregate.address" .  | quote }}
+            - name: NATS_URL
+              value: {{ include "plgd-cloud.nats.connectionString" . | quote }}
+            - name: MONGO_URI
+              value: {{ include "plgd-cloud.mongodb.connectionString" . | quote }}
+            - name: JWKS_URL
+              value: {{ .Values.setup.jwtUrl | quote }}
+            - name: USER_MGMT_TICK_FREQUENCY
+              value: {{ .Values.resourcedirectory.setup.userMgmtTicketFrequency | quote }}
+            - name: USER_MGMT_EXPIRATION
+              value: {{ .Values.resourcedirectory.setup.userMgmtExpiration | quote }}
+            {{- if .Values.global.security.certManager.enable }}
+            - name: LISTEN_TYPE
+              value: "file"
+            - name: LISTEN_FILE_CA_POOL
+              value: "{{ .Values.global.security.certManager.tls.ca.mounthPath }}/{{ .Values.global.security.certManager.tls.ca.cert }}"
+            - name: LISTEN_FILE_CERT_NAME
+              value: {{ .Values.global.security.certManager.tls.listen.cert | quote }}
+            - name: LISTEN_FILE_CERT_KEY_NAME
+              value: {{ .Values.global.security.certManager.tls.listen.key | quote }}
+            - name: LISTEN_FILE_CERT_DIR_PATH
+              value: {{ .Values.global.security.certManager.tls.listen.mounthPath | quote }}
+            - name: DIAL_TYPE
+              value: "file"
+            - name: DIAL_FILE_CA_POOL
+              value: "{{ .Values.global.security.certManager.tls.ca.mounthPath }}/{{ .Values.global.security.certManager.tls.ca.cert }}"
+            - name: DIAL_FILE_CERT_NAME
+              value: {{ .Values.global.security.certManager.tls.dial.cert | quote }}
+            - name: DIAL_FILE_CERT_KEY_NAME
+              value: {{ .Values.global.security.certManager.tls.dial.key | quote }}
+            - name: DIAL_FILE_CERT_DIR_PATH
+              value: {{ .Values.global.security.certManager.tls.dial.mounthPath | quote }}
+            {{- end }}
+            {{- if .Values.resourcedirectory.debugGrpc }}
+            - name: GODEBUG
+              value: {{ .Values.setup.grpc.godebug | quote }}
+            - name: GRPC_TRACE
+              value: {{ .Values.setup.grpc.trace | quote }}
+            - name: GRPC_VERBOSITY
+              value: {{ .Values.setup.grpc.verbosity | quote }}
+            - name: GRPC_GO_LOG_VERBOSITY_LEVEL
+              value: {{ .Values.setup.grpc.verbosityLevel | quote }}
+            - name: GRPC_GO_LOG_SEVERITY_LEVEL
+              value: {{ .Values.setup.grpc.severityLevel | quote }}
+            {{- end }}
+          volumeMounts:
+          {{- if .Values.global.security.certManager.enable}}
+            - name: ca-authority-crt
+              mountPath: {{ .Values.global.security.certManager.tls.ca.mounthPath }}
+            - name: dial-crt
+              mountPath: {{ .Values.global.security.certManager.tls.dial.mounthPath }}
+              readOnly: true
+            - name: listen-crt
+              mountPath: {{ .Values.global.security.certManager.tls.listen.mounthPath }}
+              readOnly: true
+          {{- end }}
+          {{- with .Values.resources.resourcedirectory }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+      {{- if .Values.global.security.certManager.enable}}
+        - name: dial-crt
+          secret:
+            secretName: {{ include "plgd-cloud.dialCrtName" . }}
+        - name: listen-crt
+          secret:
+            secretName: {{ include "plgd-cloud.resourcedirectory.listenCrtName" . }}
+        - name: ca-authority-crt
+          secret:
+            secretName: {{ .Values.global.security.certManager.tls.ca.secret.name }}
+      {{- end }}
+      {{- with .Values.nodeSelector.resourcedirectory }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity.resourcedirectory }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations.resourcedirectory }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+{{- end }}
